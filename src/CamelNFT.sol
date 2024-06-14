@@ -71,8 +71,8 @@ contract CamelNFT is ERC721URIStorage, Pausable, Ownable {
             revert ErrorLog("Address already claimed!");
         }
 
-        bytes32 leaf = keccak256(abi.encodePacked((msg.sender)));
-        if (MerkleProof.verify(_merkleProof, merkleRoot, leaf)) {
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        if (!MerkleProof.verify(_merkleProof, merkleRoot, leaf)) {
             revert ErrorLog("Invalid proof!");
         }
 
