@@ -12,10 +12,9 @@ contract CamelNFT is ERC721URIStorage, Pausable, Ownable {
     bool public presale = false;
 
     uint256 public price;
-
-    uint256 private _currentTokenId;
     uint256 public maxSupply;
     uint256 public maxMintAmountPerTx;
+    uint256 private _currentTokenId;
 
     bytes32 public merkleRoot;
     mapping(address => bool) public whitelistClaimed;
@@ -35,11 +34,14 @@ contract CamelNFT is ERC721URIStorage, Pausable, Ownable {
         pause();
     }
 
-    modifier mintCompliance(uint256 _mintAmount) {
+    modifier mintCompliance(uint256 _mintAmount, string[] calldata urls) {
         if (msg.value < price * _mintAmount) {
             revert ErrorLog("Insufficient funds!");
         }
-        if (_mintAmount < 0 || _mintAmount > maxMintAmountPerTx) {
+        if (_mintAmount != urls.length) {
+            revert ErrorLog("Url numbers not match mint amount!");
+        }
+        if (_mintAmount <= 0 || _mintAmount > maxMintAmountPerTx) {
             revert ErrorLog("Invalid mint amount!");
         }
         if (_currentTokenId + _mintAmount > maxSupply) {
@@ -52,7 +54,7 @@ contract CamelNFT is ERC721URIStorage, Pausable, Ownable {
         public
         payable
         whenNotPaused
-        mintCompliance(_mintAmount)
+        mintCompliance(_mintAmount, urls)
     {
         _mintLoop(_mintAmount, urls);
     }
@@ -60,7 +62,7 @@ contract CamelNFT is ERC721URIStorage, Pausable, Ownable {
     function whitelistMint(bytes32[] calldata _merkleProof, uint256 _mintAmount, string[] calldata urls)
         public
         payable
-        mintCompliance(_mintAmount)
+        mintCompliance(_mintAmount, urls)
     {
         if (!presale) {
             revert ErrorLog("Presale not active!");
